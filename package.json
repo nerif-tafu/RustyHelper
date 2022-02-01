@@ -1,0 +1,31 @@
+{
+  "name": "rustyhelper",
+  "version": "1.0.0",
+  "description": "A rusty helper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nerif-tafu/RustyHelper.git"
+  },
+  "author": "Nerif.Tafu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nerif-tafu/RustyHelper/issues"
+  },
+  "homepage": "https://github.com/nerif-tafu/RustyHelper#readme",
+  "dependencies": {
+    "@liamcottle/rustplus.js": "github:liamcottle/rustplus.js",
+    "discord.js": "^13.6.0",
+    "express": "^4.17.2",
+    "node-fetch": "^3.2.0",
+    "node-json-db": "^1.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.8.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4"
+  }
+}
