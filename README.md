@@ -27,3 +27,17 @@ An exhaustive list of the ID's and keys you need are:
 
 
 After you have gathered all this information you will be able to run ```npm install``` to download all the dependancies for Rusty Helper. After they have finished installing you need to run ```npm run setup``` to run the database creator. If this was created successfully then you can start the bot using ```npm start```.
+
+## Discord commands
+- ```!rh <GroupName> add <SteamidOfTrackedPlayer> // Tracks a user in the tracker discord channel.```
+- ```!rh <GroupName> remove <SteamidOfTrackedPlayer> // Removes a user from the tracker```
+- ```!rh <GroupName> remove all // Removes all users from a particular group```
+## In game commands
+These commands need to be run in team chat, even you are solo you still need to be in a team.
+- ```!patrol 	// Shows last seen time for the patrol heli```
+- ```!cargo 		// Shows last seen time for cargo```
+- ```!bradley	// Shows last seen time for bradley crates```
+- ```!large 		// Shows last seen time for large oil crates```
+- ```!small 		// Shows last seen time for small oil crates```
+- ```!day 		// Shows time until day```
+- ```!night 		// Shows time until night```
