@@ -130,10 +130,15 @@ class RustBot {
 
   getMonumentCoordinates() {
     this.rustplus.getMap((message) => { this.monumentCoordinates = message.response.map.monuments; });
+
   }
 
   checkMapMarkers = async () => {
-    this.rustplus.getMapMarkers((message) => { // Read currentMapMarkers.patrolHeli[0] for spawn value.
+    this.rustplus.getMapMarkers((message) => {
+    if(message.response.mapMarkers === null){
+      console.log('No response given')
+      return;
+    }
       for (const [key, value] of Object.entries(this.currentMapMarkers)) {
         value[1] = false;
       }
@@ -199,7 +204,6 @@ class RustBot {
   };
 
   updateMapMarkers(mapMarkerToTest) {
-    console.log(mapMarkerToTest)
     let eventUpdate = false;
     if (!mapMarkerToTest[0]) {
       mapMarkerToTest[0] = true;
