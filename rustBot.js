@@ -5,19 +5,17 @@ const MONUMENTRANGE = 50; // TODO: Change this back to 200 once you fix cargo se
 
 class RustBot {
   constructor(server) {
-    this.ip = '51.91.104.104';
-    this.port = '28082';
-    this.steamid = '76561198056409776';
-    this.token = '153962960';
-
     this.server = server;
 
     this.currentMapMarkers = {
-      patrolHeli: [false, false, new Date()], patrolHeliCrate: [false, false, new Date()], bradleyCrate: [false, false, new Date()], smalloilrig: [false, false, new Date()], largeoilrig: [false, false, 0], chinook: [false, false, new Date()], cargo: [false, false, new Date()],
-      // TODO: Change the properties to something like patrolHeli.hasSpawned and patrolHeli.lastSpawnTime.
-    };
-
-    this.monumentCoordinates = {};
+      patrolHeli: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      patrolHeliCrate: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      chinookCrate: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      bradleyCrate: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      smallOilRig: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      largeOilRig: {currentlyOut: false, lastSeenChecks: 4, lastSeen: new Date()},
+      cargo: {currentlyOut: false, lastSeenChecks: 4, LastSeen: new Date()}
+    }
 
     this.rustplus = new RustPlus(this.server.rustServerIP, this.server.rustServerPort, this.server.steamID, this.server.rustPlusToken);
   }
@@ -27,7 +25,7 @@ class RustBot {
 
     this.rustplus.on('connected', () => {
       this.getMonumentCoordinates();
-      util.setIntervalAsync(this.checkMapMarkers, 5000); // Setup map marker checks every 5 seconds.
+      util.setIntervalAsync(this.checkMapMarkers, 2000); // Setup map marker checks every 5 seconds.
     });
 
     this.rustplus.on('message', (message) => {
@@ -114,12 +112,12 @@ class RustBot {
         this.server.DisplayMessage(false, true, `Bradley is ${this.currentMapMarkers.bradleyCrate[0] ? 'on the map' : 'not on the map'} currently and they were last taken ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!large')) {
-        const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.largeoilrig[2].getMinutes();
-        this.server.DisplayMessage(false, true, `Large oil crates have ${this.currentMapMarkers.largeoilrig[0] ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
+        const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.largeOilRig[2].getMinutes();
+        this.server.DisplayMessage(false, true, `Large oil crates have ${this.currentMapMarkers.largeOilRig[0] ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!small')) {
-        const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.smalloilrig[2].getMinutes();
-        this.server.DisplayMessage(false, true, `Small oil crates have ${this.currentMapMarkers.smalloilrig[0] ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
+        const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.smallOilRig[2].getMinutes();
+        this.server.DisplayMessage(false, true, `Small oil crates have ${this.currentMapMarkers.smallOilRig[0] ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!cargo')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.cargo[2].getMinutes();
@@ -129,89 +127,111 @@ class RustBot {
   };
 
   getMonumentCoordinates() {
-    this.rustplus.getMap((message) => { this.monumentCoordinates = message.response.map.monuments; });
+    this.landMonuments = [];
+    this.landMinMaxCoords = {minX: 9999999, maxX: 0, minY: 9999999, maxY:0}
+    this.seaMonuments = [];
 
+    const majorLandMonuments = ['harbor_2_display_name', 'harbor_display_name','launchsite','excavator','junkyard_display_name',
+      'power_plant_display_name','train_yard_display_name','airfield_display_name','water_treatment_plant_display_name','sewer_display_name',
+      'satellite_dish_display_name', 'dome_monument_name', 'mining_outpost_display_name','supermarket','gas_station','lighthouse_display_name']; // TODO: I think this is missing military tuns.
+
+    const majorSeaMonuments = ['oil_rig_small', 'large_oil_rig'];
+
+    this.rustplus.getMap((res) => { 
+      res.response.map.monuments.forEach((monument) => {
+        if (majorLandMonuments.includes(monument.token)) { 
+          this.landMonuments.push(monument);
+          if (monument.x < this.landMinMaxCoords.minX) { this.landMinMaxCoords.minX = monument.x; }
+          if (monument.y < this.landMinMaxCoords.minY) { this.landMinMaxCoords.minY = monument.y; }
+          if (monument.x > this.landMinMaxCoords.maxX) { this.landMinMaxCoords.maxX = monument.x; }
+          if (monument.y > this.landMinMaxCoords.maxY) { this.landMinMaxCoords.maxY = monument.y; }
+        } else if (majorSeaMonuments.includes(monument.token)){
+          this.seaMonuments.push(monument);
+        }
+      }) 
+    });
   }
 
   checkMapMarkers = async () => {
     this.rustplus.getMapMarkers((message) => {
-    if(message.response.mapMarkers === null){
-      console.log('No response given')
-      return;
-    }
-      for (const [key, value] of Object.entries(this.currentMapMarkers)) {
-        value[1] = false;
+
+      // If no response is received.
+      if(message.response.mapMarkers === null){
+        console.log('No response given')
+        return;
       }
 
-      message.response.mapMarkers.markers.forEach((mapMarker) => {
+      for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
+        markerProperties.lastSeenChecks +=1;
+      }
+    
+      message.response.mapMarkers.markers.forEach((mapMarker) => { // For each marker sent 
         switch (mapMarker.type) {
-          case 2:
+          case 2: 
+          // If it was an explosion
             let hasCheckedForBradley = false;
-            this.monumentCoordinates.forEach((monument) => {
-              if (util.inRange(mapMarker.x, monument.x - MONUMENTRANGE, monument.x + MONUMENTRANGE) && util.inRange(mapMarker.y, monument.y - MONUMENTRANGE, monument.y + MONUMENTRANGE)) {
-                if (monument.token === 'launchsite') {
-                  if (this.updateMapMarkers(this.currentMapMarkers.bradleyCrate)) { this.server.DisplayMessage(true, true, `Bradley just got taken! @ ${new Date().toLocaleTimeString()}`); }
-                  hasCheckedForBradley = true;
-                }
-              }
+            this.landMonuments.forEach((monument) => {
+              if (!util.inRange(mapMarker.x, monument.x - 300, monument.x + 300) || !util.inRange(mapMarker.y, monument.y - 300, monument.y + 300)) { return; }
+              if (monument.token !== 'launchsite') { return; }
+              if (!this.currentMapMarkers.bradleyCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Bradley just got taken! @ ${new Date().toLocaleTimeString()}`); }
+              this.mapMarkerPresent(this.currentMapMarkers.bradleyCrate)
+              hasCheckedForBradley = true;     
             });
-            if (!hasCheckedForBradley) {
-              if (this.updateMapMarkers(this.currentMapMarkers.patrolHeliCrate)) { this.server.DisplayMessage(true, true, `Patrol heli just got taken! @ ${new Date().toLocaleTimeString()}`); }
-            }
+            if (hasCheckedForBradley) { return; }          
+            if (!this.currentMapMarkers.patrolHeliCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Patrol heli just got taken! @ ${new Date().toLocaleTimeString()}`); }
+            this.mapMarkerPresent(this.currentMapMarkers.patrolHeliCrate)
             break;
           case 5:
-            if (this.updateMapMarkers(this.currentMapMarkers.cargo)) { this.server.DisplayMessage(true, true, `Cargo spawned! @ ${new Date().toLocaleTimeString()}`); }
+            //If it was cargo
+            if (!this.currentMapMarkers.cargo.currentlyOut) { this.server.DisplayMessage(true, true, `Cargo spawned! @ ${new Date().toLocaleTimeString()}`); }
+            this.mapMarkerPresent(this.currentMapMarkers.cargo);
             break;
           case 6:
-            this.monumentCoordinates.forEach((monument) => { // TODO: Add fix for Cargo setting these off by accident.
-              if (util.inRange(mapMarker.x, monument.x - MONUMENTRANGE, monument.x + MONUMENTRANGE) && util.inRange(mapMarker.y, monument.y - MONUMENTRANGE, monument.y + MONUMENTRANGE)) {
-                if (monument.token === 'oil_rig_small') {
-                  if (this.updateMapMarkers(this.currentMapMarkers.smalloilrig)) { this.server.DisplayMessage(true, true, `Small rig just respawned! @ ${new Date().toLocaleTimeString()}`); }
-                }
-                if (monument.token === 'large_oil_rig') {
-                  if (this.updateMapMarkers(this.currentMapMarkers.largeoilrig)) { this.server.DisplayMessage(true, true, `Large rig just respawned! @ ${new Date().toLocaleTimeString()}`); }
-                }
-                if (monument.token !== 'large_oil_rig' && monument.token !== 'oil_rig_small') {
-                  if (this.updateMapMarkers(this.currentMapMarkers.chinook)) { this.server.DisplayMessage(true, true, `Chinook crate just dropped at ${monument.token} @ ${new Date().toLocaleTimeString()}`); }
-                }
+            // If it was a locked crate
+            this.seaMonuments.forEach((monument) => { // TODO: Add fix for Cargo setting these off by accident.
+              if (!util.inRange(mapMarker.x, monument.x - 30, monument.x + 30) || !util.inRange(mapMarker.y, monument.y - 30, monument.y + 30)) { return; }
+              
+              if (monument.token === 'oil_rig_small') {
+                if (!this.currentMapMarkers.smallOilRig.currentlyOut) { this.server.DisplayMessage(true, true, `Small rig just respawned! @ ${new Date().toLocaleTimeString()}`); }
+                this.mapMarkerPresent(this.currentMapMarkers.smallOilRig)    
               }
-              // if (isMarkerNearMonument === '') { } TODO: Cant figure out a way to do deal with 3 crates on cargo, will probs need to change how currentMapMarkers work.
+              
+              if (monument.token === 'large_oil_rig') {
+                if (!this.currentMapMarkers.largeOilRig.currentlyOut) { this.server.DisplayMessage(true, true, `Large rig just respawned! @ ${new Date().toLocaleTimeString()}`); }
+                this.mapMarkerPresent(this.currentMapMarkers.largeOilRig)
+              }   
             });
+            this.landMonuments.forEach((monument) => {
+              if (!util.inRange(mapMarker.x, monument.x - 300, monument.x + 300) || !util.inRange(mapMarker.y, monument.y - 300, monument.y + 300)) { return; }
+              if (!util.inRange(monument.x, this.landMinMaxCoords.minX - 100, this.landMinMaxCoords.maxX + 100) || !util.inRange(!monument.y, this.landMinMaxCoords.minY - 100, this.landMinMaxCoords.maxY + 100)) { return; }              
+              if (!this.currentMapMarkers.chinookCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Chinook crate just dropped at ${monument.token} @ ${new Date().toLocaleTimeString()}`); }
+              this.mapMarkerPresent(this.currentMapMarkers.chinookCrate)
+            })
             break;
           case 8:
-            if (this.updateMapMarkers(this.currentMapMarkers.lockpatrolHeliedCrate)) { this.server.DisplayMessage(true, true, `The patrol heli just spawned! @ ${new Date().toLocaleTimeString()}`); }
+            // It it was patrol heli
+            if (!this.currentMapMarkers.patrolHeli.currentlyOut) { this.server.DisplayMessage(true, true, `The patrol heli just spawned! @ ${new Date().toLocaleTimeString()}`); }      
+            this.mapMarkerPresent(this.currentMapMarkers.patrolHeli)
             break;
         }
       });
-
-      for (const [key, value] of Object.entries(this.currentMapMarkers)) {
-        if (!value[1] && value[0]) {
-          value[0] = false;
-          switch (key) {
-            case 'smalloilrig':
-              this.server.DisplayMessage(true, true, 'Small oil was just looted!');
-              break;
-            case 'largeoilrig':
-              this.server.DisplayMessage(true, true, 'Large oil was just looted!');
-              break;
-            case 'chinook':
-              this.server.DisplayMessage(true, true, 'Chinook was just looted!');
-              break;
-          }
-        }
-      }
     });
+
+    for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
+      if (markerProperties.lastSeenChecks <= 3) { continue; }
+      if (markerProperties.currentlyOut) {
+        if (marker === 'smalloilrig') { this.server.DisplayMessage(true, true, 'Small oil was just looted!'); }
+        if (marker === 'largeoilrig') { this.server.DisplayMessage(true, true, 'Large oil was just looted!'); }
+        if (marker === 'chinookCrate') { this.server.DisplayMessage(true, true, 'Chinook was just looted!'); }
+      }
+      markerProperties.currentlyOut = false;
+    }
   };
 
-  updateMapMarkers(mapMarkerToTest) {
-    let eventUpdate = false;
-    if (!mapMarkerToTest[0]) {
-      mapMarkerToTest[0] = true;
-      eventUpdate = true;
-      mapMarkerToTest[2] = new Date();
-    }
-    mapMarkerToTest[1] = true;
-    return (eventUpdate);
+  mapMarkerPresent(mapMarkerToTest) {
+    mapMarkerToTest.lastSeenChecks = 0;
+    mapMarkerToTest.currentlyOut = true;
+    mapMarkerToTest.lastSeen = new Date();
   }
 
   sendTeamMessage(message) {
