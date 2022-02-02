@@ -131,9 +131,9 @@ class RustBot {
     this.landMinMaxCoords = {minX: 9999999, maxX: 0, minY: 9999999, maxY:0}
     this.seaMonuments = [];
 
-    const majorLandMonuments = ['harbor_2_display_name', 'harbor_display_name','launchsite','excavator','junkyard_display_name',
+    const majorLandMonuments = ['harbor_2_display_name', 'harbor_display_name','launchsite','excavator','junkyard_display_name', 'train_tunnel_display_name',
       'power_plant_display_name','train_yard_display_name','airfield_display_name','water_treatment_plant_display_name','sewer_display_name',
-      'satellite_dish_display_name', 'dome_monument_name', 'mining_outpost_display_name','supermarket','gas_station','lighthouse_display_name']; // TODO: I think this is missing military tuns.
+      'satellite_dish_display_name', 'dome_monument_name', 'mining_outpost_display_name','supermarket','gas_station','lighthouse_display_name'];
 
     const majorSeaMonuments = ['oil_rig_small', 'large_oil_rig'];
 
