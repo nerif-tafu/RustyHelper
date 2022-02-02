@@ -203,7 +203,7 @@ class RustBot {
             });
             this.landMonuments.forEach((monument) => {
               if (!util.inRange(mapMarker.x, monument.x - 300, monument.x + 300) || !util.inRange(mapMarker.y, monument.y - 300, monument.y + 300)) { return; }
-              if (!util.inRange(monument.x, this.landMinMaxCoords.minX - 100, this.landMinMaxCoords.maxX + 100) || !util.inRange(!monument.y, this.landMinMaxCoords.minY - 100, this.landMinMaxCoords.maxY + 100)) { return; }              
+              if (!util.inRange(monument.x, this.landMinMaxCoords.minX - 100, this.landMinMaxCoords.maxX + 100) || !util.inRange(monument.y, this.landMinMaxCoords.minY - 100, this.landMinMaxCoords.maxY + 100)) { return; }              
               if (!this.currentMapMarkers.chinookCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Chinook crate just dropped at ${monument.token} @ ${new Date().toLocaleTimeString()}`); }
               this.mapMarkerPresent(this.currentMapMarkers.chinookCrate)
             })
@@ -220,8 +220,8 @@ class RustBot {
     for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
       if (markerProperties.lastSeenChecks <= 3) { continue; }
       if (markerProperties.currentlyOut) {
-        if (marker === 'smalloilrig') { this.server.DisplayMessage(true, true, 'Small oil was just looted!'); }
-        if (marker === 'largeoilrig') { this.server.DisplayMessage(true, true, 'Large oil was just looted!'); }
+        if (marker === 'smallOilRig') { this.server.DisplayMessage(true, true, 'Small oil was just looted!'); }
+        if (marker === 'largeOilRig') { this.server.DisplayMessage(true, true, 'Large oil was just looted!'); }
         if (marker === 'chinookCrate') { this.server.DisplayMessage(true, true, 'Chinook was just looted!'); }
       }
       markerProperties.currentlyOut = false;
