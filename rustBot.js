@@ -105,23 +105,23 @@ class RustBot {
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!patrol')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.patrolHeli.lastSeen.getMinutes();
-        this.server.DisplayMessage(false, true, `The patrol helicopter is ${this.currentMapMarkers.patrolHeli.lastSeen ? 'out' : 'not out'} currently and they were last taken ${lastSpawn} minutes ago`);
+        this.server.DisplayMessage(false, true, `The patrol helicopter is ${this.currentMapMarkers.patrolHeli.currentlyOut ? 'out' : 'not out'} currently and they were last taken ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!bradley')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.bradleyCrate.lastSeen.getMinutes();
-        this.server.DisplayMessage(false, true, `Bradley is ${this.currentMapMarkers.bradleyCrate.lastSeen ? 'on the map' : 'not on the map'} currently and they were last taken ${lastSpawn} minutes ago`);
+        this.server.DisplayMessage(false, true, `Bradley is ${this.currentMapMarkers.bradleyCrate.currentlyOut ? 'on the map' : 'not on the map'} currently and they were last taken ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!large')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.largeOilRig.lastSeen.getMinutes();
-        this.server.DisplayMessage(false, true, `Large oil crates have ${this.currentMapMarkers.largeOilRig.lastSeen ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
+        this.server.DisplayMessage(false, true, `Large oil crates have ${this.currentMapMarkers.largeOilRig.currentlyOut ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!small')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.smallOilRig.lastSeen.getMinutes();
-        this.server.DisplayMessage(false, true, `Small oil crates have ${this.currentMapMarkers.smallOilRig.lastSeen ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
+        this.server.DisplayMessage(false, true, `Small oil crates have ${this.currentMapMarkers.smallOilRig.currentlyOut ? 'spawned' : 'not spawned'} and they were last looted ${lastSpawn} minutes ago`);
       }
       if (message.broadcast && message.broadcast.teamMessage && message.broadcast.teamMessage.message.message.includes('!cargo')) {
         const lastSpawn = new Date().getMinutes() - this.currentMapMarkers.cargo.lastSeen.getMinutes();
-        this.server.DisplayMessage(false, true, `Cargo is ${this.currentMapMarkers.cargo.lastSeen ? 'currently' : 'not currently'} active and last spawned ${lastSpawn} minutes ago`);
+        this.server.DisplayMessage(false, true, `Cargo is ${this.currentMapMarkers.cargo.currentlyOut ? 'currently' : 'not currently'} active and last spawned ${lastSpawn} minutes ago`);
       }
     });
   };
