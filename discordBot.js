@@ -20,7 +20,7 @@ class DiscordBot {
         const command = (msg.content.substring(secondSpace + 1, msg.content.indexOf(' ', secondSpace + 1))).toLowerCase();
         const arg = msg.content.substring(msg.content.indexOf(' ', msg.content.indexOf(command)) + 1, msg.content.length);
 
-        this.client.channels.cache.get(`${this.server.playerTrackerChannelID}`).messages.fetch(msg.id).then((msg) => msg.delete());
+        this.client.channels.cache.get(`${this.server.playerTrackerChannelID}`).messages.fetch(msg.id).then((msg) => msg.delete(100));
 
         if (command === 'add') {
           this.addUser(arg, group);
