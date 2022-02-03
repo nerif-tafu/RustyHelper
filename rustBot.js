@@ -21,8 +21,9 @@ class RustBot {
   }
 
   startRustBot = async () => {
-    this.rustplus.on('error',async () =>{
+    this.rustplus.on('error',async err =>{
       console.log('Rust+ error connecting')
+      console.log(err)
       const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
       await delay(1000);
       this.server.RestartRustBot();
