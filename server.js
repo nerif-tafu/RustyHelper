@@ -19,6 +19,7 @@ class Server {
   }
 
   RestartRustBot() {
+    console.log('Restarting RustBot');
     this.rustBot = new RustBot(this);
     this.rustBot.startRustBot();
   }

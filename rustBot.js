@@ -22,6 +22,7 @@ class RustBot {
 
   startRustBot = async () => {
     this.rustplus.on('error',async () =>{
+      console.log('Rust+ error connecting')
       const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
       await delay(1000);
       this.server.RestartRustBot();
@@ -31,6 +32,7 @@ class RustBot {
 
     this.rustplus.on('connected', () => {
       this.connected = true;
+      console.log('Rust+ connected')
       this.getMonumentCoordinates();
       util.setIntervalAsync(this.checkMapMarkers, 2000); // Setup map marker checks every 5 seconds.
     });
@@ -215,7 +217,6 @@ class RustBot {
             this.landMonuments.forEach((monument) => {
               
               if (!util.inRange(mapMarker.x, monument.x - 300, monument.x + 300) || !util.inRange(mapMarker.y, monument.y - 300, monument.y + 300)) { return; }
-              console.log(this.landMinMaxCoords.minX, monument.x)
               if (!util.inRange(mapMarker.x, this.landMinMaxCoords.minX - 75, this.landMinMaxCoords.maxX + 75) || !util.inRange(mapMarker.y, this.landMinMaxCoords.minY - 75, this.landMinMaxCoords.maxY + 75)) { return; }              
               if (!this.currentMapMarkers.chinookCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Chinook crate just dropped at ${monument.token} @ ${new Date().toLocaleTimeString()}`); }
               this.mapMarkerPresent(this.currentMapMarkers.chinookCrate)
