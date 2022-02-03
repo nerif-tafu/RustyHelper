@@ -220,7 +220,7 @@ class RustBot {
             this.landMonuments.forEach((monument) => {
               
               if (!util.inRange(mapMarker.x, monument.x - 300, monument.x + 300) || !util.inRange(mapMarker.y, monument.y - 300, monument.y + 300)) { return; }
-              if (!util.inRange(mapMarker.x, this.landMinMaxCoords.minX - 75, this.landMinMaxCoords.maxX + 75) || !util.inRange(mapMarker.y, this.landMinMaxCoords.minY - 75, this.landMinMaxCoords.maxY + 75)) { return; }              
+              if (!util.inRange(mapMarker.x, this.landMinMaxCoords.minX - 25, this.landMinMaxCoords.maxX + 25) || !util.inRange(mapMarker.y, this.landMinMaxCoords.minY - 75, this.landMinMaxCoords.maxY + 75)) { return; }              
               if (!this.currentMapMarkers.chinookCrate.currentlyOut) { this.server.DisplayMessage(true, true, `Chinook crate just dropped at ${monument.token} @ ${new Date().toLocaleTimeString()}`); }
               this.mapMarkerPresent(this.currentMapMarkers.chinookCrate)
             })
