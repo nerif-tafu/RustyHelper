@@ -20,10 +20,21 @@ class RustBot {
     this.rustplus = new RustPlus(this.server.rustServerIP, this.server.rustServerPort, this.server.steamID, this.server.rustPlusToken);
   }
 
-  startRustBot = () => {
+  startRustBot = async () => {
+    this.rustplus.on('error',async () =>{
+      console.log('Couldnt connect')
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+      await delay(1000);
+      this.server.RestartRustBot();
+    });
+
     this.rustplus.connect();
 
+    
+
+
     this.rustplus.on('connected', () => {
+      this.connected = true;
       this.getMonumentCoordinates();
       util.setIntervalAsync(this.checkMapMarkers, 2000); // Setup map marker checks every 5 seconds.
     });
@@ -153,19 +164,25 @@ class RustBot {
   }
 
   checkMapMarkers = async () => {
-    this.rustplus.getMapMarkers((message) => {
-
-      // If no response is received.
-      if(message.response.mapMarkers === null){
+    // TODO: Fix issues with server restart, it might be worth adding a server montioring script to server.js that recreates the rustBot.js when there is lost connection.
+    // TODO: This may also be something from liam sendRequestAsync() https://github.com/liamcottle/rustplus.js/blob/master/examples/6_async_requests.js
+    // Maybe use that exmaple and test every minute to see if the server is up or not.
+    if (!this.connected) {return;}
+    this.rustplus.sendRequestAsync({
+      getMapMarkers: {}, // get server info with a timeout of 2 seconds
+    }, 5000).then((message) => {
+      if(message.mapMarkers === null){
         console.log('No response given')
         return;
       }
+      
+      console.log('Running!')
 
       for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
         markerProperties.lastSeenChecks +=1;
       }
     
-      message.response.mapMarkers.markers.forEach((mapMarker) => { // For each marker sent 
+      message.mapMarkers.markers.forEach((mapMarker) => { // For each marker sent 
         switch (mapMarker.type) {
           case 2: 
           // If it was an explosion
@@ -215,7 +232,18 @@ class RustBot {
             break;
         }
       });
+
+    }).catch((error) => {
+      if (!this.connected) {return;}
+      console.log(error);
+      this.connected = false;
+      // Call for reconnection
+      this.rustplus.disconnect();
+      this.server.RestartRustBot();
     });
+
+      
+  
 
     for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
       if (markerProperties.lastSeenChecks <= 3) { continue; }

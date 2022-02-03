@@ -14,7 +14,18 @@ const inRange = function (num, start, end) {
   return num >= start && num <= end;
 };
 
+function callWithTimeout(func, timeout) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), timeout)
+    func().then(
+      response => resolve(response),
+      err => reject(new Error(err))
+    ).finally(() => clearTimeout(timer))
+  })
+}
+
 module.exports = {
   setIntervalAsync,
   inRange,
+  callWithTimeout
 };

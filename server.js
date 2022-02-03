@@ -18,6 +18,11 @@ class Server {
     this.rustBot.startRustBot();
   }
 
+  RestartRustBot() {
+    this.rustBot = new RustBot(this);
+    this.rustBot.startRustBot();
+  }
+
   DisplayMessage(displayDiscord, displayRust, message) {
     if (displayDiscord) {
       this.discordBot.sendEventMessage(message);
@@ -29,3 +34,5 @@ class Server {
 }
 
 const server = new Server();
+
+module.exports = Server;
