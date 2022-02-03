@@ -174,6 +174,8 @@ class RustBot {
         return;
       }
 
+      console.log('Got markers @ ', new Date());
+
       for (const [marker, markerProperties] of Object.entries(this.currentMapMarkers)) {
         markerProperties.lastSeenChecks +=1;
       }
